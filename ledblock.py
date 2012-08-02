@@ -14,11 +14,10 @@ DOT_SPEED_Y = float(DISPLAY_HEIGHT)/4.0
 
 DOT_PADDING = 10
 
-class Dot():
+class Dot(object):
 
     def __init__(self, color=(100,100,100)):
         self.screen = pygame.display.get_surface()
-        self.animate = False
         self.set_color( color )
 
     def set_color(self, color):
@@ -28,26 +27,27 @@ class Dot():
         x, y = self.get_pos()
         pygame.draw.circle( self.screen, self.color, (x,y), 3)
 
-    def sparkle(self, do):
-        if do:
-            self.mv_x = random.random()*DOT_SPEED_X-(DOT_SPEED_X/2.0)
-            self.mv_y = random.random()*DOT_SPEED_Y-(DOT_SPEED_Y/2.0)
-            self.animate = True
-        else:
-            self.animate = False
-
     def update(self, speed):
-        
-        if self.animate:
-            self.mv_y += 2.0
-            self.x += self.mv_x * speed
-            self.y += self.mv_y * speed
+        pass    
 
     def set_pos(self, x, y ):
         self.x, self.y = x, y
 
     def get_pos(self):
         return int(round(self.x)), int(round(self.y))
+
+class AnimatedDot(Dot):
+ 
+    def __init__(self, color):
+        super(AnimatedDot,self).__init__(color)
+
+        self.mv_x = random.random()*DOT_SPEED_X-(DOT_SPEED_X/2.0)
+        self.mv_y = random.random()*DOT_SPEED_Y-(DOT_SPEED_Y/2.0)
+
+    def update(self, speed):
+        self.mv_y += 2.0
+        self.x += self.mv_x * speed
+        self.y += self.mv_y * speed
 
 class AnimationPool(object):
 
@@ -69,6 +69,7 @@ class Digit(object):
 
     def __init__(self, number, x, y):
 
+        self.animated = []
         self.dots = []
         self.current_mask = None
 
@@ -112,16 +113,30 @@ class Digit(object):
             if old_value == 1 and new_value == 0:
                 x, y = self.dots[index].get_pos()
 
+                anim_dot = AnimatedDot((200,0,0))
+                anim_dot.set_pos(x,y)
+
+                self.animated.append(anim_dot)
 
     def set_digitcolor(self, index, color):
         self.dots[index].set_color(color)
 
     def draw(self):
+
+        for dot in self.animated:
+            dot.draw()
+
         for dot in self.dots:
             dot.draw()
 
     def update(self,speed):
-        for dot in self.dots:
+
+        for index, dot in enumerate(self.animated):
+            x,y = dot.get_pos()
+
+            if x >= DISPLAY_HEIGHT or y >= DISPLAY_WIDTH:
+                del self.animated[index]
+
             dot.update(speed)
 
 class Clock(object):
@@ -140,16 +155,18 @@ class Clock(object):
             else:
                 offset += 20
 
-    def update(self, speed):
+    def update_clock(self):
 
         clock = self.get_clock()
         if self.last_time != clock:
-
             for index,digit in enumerate(clock):
                 self.digits[index].set_number( int(digit) )
-                self.digits[index].update(speed)
 
             self.last_time = clock
+
+    def update(self,speed):
+        for digit in self.digits:
+            digit.update(speed)
 
     def draw(self):
         for digit in self.digits:
@@ -175,6 +192,7 @@ def main():
 
     pygame.display.flip()
     clock = pygame.time.Clock()
+    pygame.time.set_timer(USEREVENT+1, 200)
 
     while True:
         ticks = clock.tick(60)
@@ -183,6 +201,8 @@ def main():
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
+            if event.type == USEREVENT+1:
+                dot_clock.update_clock()
         
         screen.blit(background, (0, 0))
 
