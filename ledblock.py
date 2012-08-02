@@ -134,7 +134,7 @@ class Digit(object):
         for index, dot in enumerate(self.animated):
             x,y = dot.get_pos()
 
-            if x >= DISPLAY_HEIGHT or y >= DISPLAY_WIDTH:
+            if x >= DISPLAY_WIDTH or y >= DISPLAY_HEIGHT:
                 del self.animated[index]
 
             dot.update(speed)
