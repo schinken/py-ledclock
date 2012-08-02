@@ -27,9 +27,6 @@ class Dot(object):
         x, y = self.get_pos()
         pygame.draw.circle( self.screen, self.color, (x,y), 3)
 
-    def update(self, speed):
-        pass    
-
     def set_pos(self, x, y ):
         self.x, self.y = x, y
 
@@ -42,7 +39,7 @@ class AnimatedDot(Dot):
         super(AnimatedDot,self).__init__(color)
 
         self.mv_x = random.random()*DOT_SPEED_X-(DOT_SPEED_X/2.0)
-        self.mv_y = random.random()*DOT_SPEED_Y-(DOT_SPEED_Y/2.0)
+        self.mv_y = random.random()*DOT_SPEED_Y-(DOT_SPEED_Y/1.2)
 
     def update(self, speed):
         self.mv_y += 2.0
@@ -72,8 +69,6 @@ class Digit(object):
         self.animated = []
         self.dots = []
         self.current_mask = None
-
-        print x, y
 
         for h in xrange(bitmapfont.height):
             for w in xrange(bitmapfont.width):
