@@ -6,13 +6,23 @@ import pygame, sys,os
 from pygame.locals import * 
 
 
-DISPLAY_WIDTH = 600
-DISPLAY_HEIGHT = 400
+DISPLAY_WIDTH = 96
+DISPLAY_HEIGHT = 14
+CLOCK_OFFSET_X = 30
+CLOCK_OFFSET_Y = 2
 
-DOT_SPEED_X = float(DISPLAY_WIDTH)/4.0
+DOT_FOREGROUND_COLOR = (255,255,255)
+DOT_BACKGROUND_COLOR = (0,0,0)
+DOT_ANIMATED_COLOR = (180,180,180)
+
+DOT_SPEED_X = float(DISPLAY_WIDTH)/2.0
 DOT_SPEED_Y = float(DISPLAY_HEIGHT)/4.0
+DOT_GRAVITY = 0.7
 
-DOT_PADDING = 10
+DOT_SIZE = 1
+DOT_SPACING = 1
+DIGIT_SPACING = 1
+TIME_SPACING = 5
 
 class Dot(object):
 
@@ -25,7 +35,9 @@ class Dot(object):
 
     def draw(self):
         x, y = self.get_pos()
-        pygame.draw.circle( self.screen, self.color, (x,y), 3)
+#        pygame.draw.circle( self.screen, self.color, (x,y), DOT_SIZE)
+#        pygame.draw.rect( self.screen, self.color, ((x,y), (1,2)))
+        self.screen.set_at((x, y), self.color)
 
     def update(self, speed):
         pass    
@@ -42,10 +54,10 @@ class AnimatedDot(Dot):
         super(AnimatedDot,self).__init__(color)
 
         self.mv_x = random.random()*DOT_SPEED_X-(DOT_SPEED_X/2.0)
-        self.mv_y = random.random()*DOT_SPEED_Y-(DOT_SPEED_Y/2.0)
+        self.mv_y = random.random()*DOT_SPEED_Y-(DOT_SPEED_Y/0.5)
 
     def update(self, speed):
-        self.mv_y += 2.0
+        self.mv_y += DOT_GRAVITY
         self.x += self.mv_x * speed
         self.y += self.mv_y * speed
 
@@ -73,13 +85,11 @@ class Digit(object):
         self.dots = []
         self.current_mask = None
 
-        print x, y
-
         for h in xrange(bitmapfont.height):
             for w in xrange(bitmapfont.width):
 
-                cur_x = (w+1) * DOT_PADDING + x
-                cur_y = (h+1) * DOT_PADDING + y
+                cur_x = (w+1) * DOT_SPACING + x
+                cur_y = (h+1) * DOT_SPACING + y
 
                 dot = Dot()
                 dot.set_pos( cur_x, cur_y )
@@ -100,9 +110,9 @@ class Digit(object):
 
         for index, val in enumerate(mask):
             if val:
-                self.set_digitcolor(index, (200, 200, 200))
+                self.set_digitcolor(index, DOT_FOREGROUND_COLOR)
             else:
-                self.set_digitcolor(index, (60, 60, 60))
+                self.set_digitcolor(index, DOT_BACKGROUND_COLOR)
 
     def animate_diff(self, new_mask):
         
@@ -115,7 +125,7 @@ class Digit(object):
             if old_value == 1 and new_value == 0:
                 x, y = self.dots[index].get_pos()
 
-                anim_dot = AnimatedDot((200,0,0))
+                anim_dot = AnimatedDot(DOT_ANIMATED_COLOR)
                 anim_dot.set_pos(x,y)
 
                 self.animated.append(anim_dot)
@@ -152,9 +162,9 @@ class Clock(object):
             if digit == '0':
                 dig = Digit(0, offset_x, offset_y)
                 self.digits.append(dig)
-                offset_x += 50
+                offset_x += bitmapfont.width*DOT_SPACING+DIGIT_SPACING
             else:
-                offset_x += 20
+                offset_x += TIME_SPACING
 
     def update_clock(self):
 
@@ -189,7 +199,7 @@ def main():
     background.fill((0,0,0))
 
 
-    dot_clock = Clock(100, 50)
+    dot_clock = Clock(CLOCK_OFFSET_X, CLOCK_OFFSET_Y)
 
     pygame.display.flip()
     clock = pygame.time.Clock()
