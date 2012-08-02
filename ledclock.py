@@ -73,6 +73,8 @@ class Digit(object):
         self.dots = []
         self.current_mask = None
 
+        print x, y
+
         for h in xrange(bitmapfont.height):
             for w in xrange(bitmapfont.width):
 
@@ -141,19 +143,18 @@ class Digit(object):
 
 class Clock(object):
 
-    def __init__(self):
+    def __init__(self, offset_x, offset_y):
         
         self.last_time = None
         self.digits = []
-        offset = 0
 
         for digit in '00:00:00':
             if digit == '0':
-                dig = Digit(0, offset, 0)
+                dig = Digit(0, offset_x, offset_y)
                 self.digits.append(dig)
-                offset += 50
+                offset_x += 50
             else:
-                offset += 20
+                offset_x += 20
 
     def update_clock(self):
 
@@ -188,7 +189,7 @@ def main():
     background.fill((0,0,0))
 
 
-    dot_clock = Clock()
+    dot_clock = Clock(100, 50)
 
     pygame.display.flip()
     clock = pygame.time.Clock()
