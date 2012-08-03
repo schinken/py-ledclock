@@ -46,22 +46,6 @@ class AnimatedDot(Dot):
         self.x += self.mv_x * speed
         self.y += self.mv_y * speed
 
-class AnimationPool(object):
-
-    def __init__(self):
-        self.items = []
-
-    def add_object(self, obj):
-        self.items.append(obj)
-
-    def update(self,speed):
-        for item in self.items:
-            item.update(speed)
-
-    def draw(self):
-        for item in self.items:
-            item.draw()
-
 class Digit(object):
 
     def __init__(self, number, x, y):
