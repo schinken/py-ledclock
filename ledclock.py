@@ -3,13 +3,14 @@ import time
 import math
 import bitmapfont
 import pygame, sys,os
+import boardserial_client
 from pygame.locals import * 
 
 
 DISPLAY_WIDTH = 96
-DISPLAY_HEIGHT = 14
+DISPLAY_HEIGHT = 16
 CLOCK_OFFSET_X = 30
-CLOCK_OFFSET_Y = 2
+CLOCK_OFFSET_Y = 4
 
 DOT_FOREGROUND_COLOR = (255,255,255)
 DOT_BACKGROUND_COLOR = (0,0,0)
@@ -17,12 +18,19 @@ DOT_ANIMATED_COLOR = (180,180,180)
 
 DOT_SPEED_X = float(DISPLAY_WIDTH)/2.0
 DOT_SPEED_Y = float(DISPLAY_HEIGHT)/4.0
-DOT_GRAVITY = 0.7
+DOT_GRAVITY = 1.1
 
 DOT_SIZE = 1
 DOT_SPACING = 1
 DIGIT_SPACING = 1
 TIME_SPACING = 5
+
+def mapRange( val, min1, max1, min2, max2 ):
+    return (val-min1)/(max1-min1) * (max2-min2) + min2
+
+def toGrayscale( value, steps = 3.0 ):
+    value = mapRange( value, 0.0, 255.0, 0.0, steps )
+    return int( round( value ) )
 
 class Dot(object):
 
@@ -53,8 +61,8 @@ class AnimatedDot(Dot):
     def __init__(self, color):
         super(AnimatedDot,self).__init__(color)
 
-        self.mv_x = random.random()*DOT_SPEED_X-(DOT_SPEED_X/2.0)
-        self.mv_y = random.random()*DOT_SPEED_Y-(DOT_SPEED_Y/0.5)
+        self.mv_x = random.random()*DOT_SPEED_X-(DOT_SPEED_X/2.1)
+        self.mv_y = random.random()*DOT_SPEED_Y-(DOT_SPEED_Y/0.22)
 
     def update(self, speed):
         self.mv_y += DOT_GRAVITY
@@ -174,7 +182,7 @@ def main():
 
     pygame.init() 
     
-    window = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT)) 
+    window = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT), 0, 8) 
     pygame.display.set_caption('Jumping dots') 
     screen = pygame.display.get_surface() 
 
@@ -188,6 +196,7 @@ def main():
     pygame.display.flip()
     clock = pygame.time.Clock()
     pygame.time.set_timer(USEREVENT+1, 200)
+    pp = boardserial_client.Communication( ip='10.1.20.10' )
 
     while True:
         ticks = clock.tick(60)
@@ -205,7 +214,17 @@ def main():
         dot_clock.draw()
             
         #Draw Everything
-        pygame.display.flip()
+
+        frame = {}
+        x,y = 0,0
+        for row in pygame.surfarray.array2d(screen):
+            y = 0
+            for px in row:
+                frame[ x,y ] = toGrayscale(px)
+                y += 1
+            x += 1
+
+        pp.writeFrame( frame, DISPLAY_WIDTH, DISPLAY_HEIGHT )
 
 if __name__ == '__main__':
     main()
